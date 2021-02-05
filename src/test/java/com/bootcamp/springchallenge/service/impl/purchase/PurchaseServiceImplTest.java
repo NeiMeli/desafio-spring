@@ -4,14 +4,16 @@ import com.bootcamp.springchallenge.common.customer.CustomerTestConstants;
 import com.bootcamp.springchallenge.common.purchase.PurchaseTestConstants;
 import com.bootcamp.springchallenge.controller.common.util.DoubleProcessor;
 import com.bootcamp.springchallenge.controller.purchase.dto.StatusCodeDTO;
-import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseDataDTO;
+import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseClosureDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestArticleDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseArticleDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.ReceiptDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOBuilder;
+import com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOExtra;
 import com.bootcamp.springchallenge.entity.Article;
+import com.bootcamp.springchallenge.entity.Customer;
 import com.bootcamp.springchallenge.entity.purchase.Purchase;
 import com.bootcamp.springchallenge.entity.purchase.PurchaseArticle;
 import com.bootcamp.springchallenge.entity.purchase.PurchaseStatus;
@@ -108,8 +110,8 @@ class PurchaseServiceImplTest {
         int receipt = actualResponse.getReceipt().getId();
         assertPurchaseDataDTOBadRequestOcurr(userName, receipt, r -> service.confirmPurchase(r));
 
-        PurchaseDataDTO purchaseDataDTO = new PurchaseDataDTO().setUserName(userName).setReceipt(receipt);
-        PurchaseResponseDTO response = service.confirmPurchase(purchaseDataDTO);
+        PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt);
+        PurchaseResponseDTO response = service.confirmPurchase(purchaseClosureDTO);
         StatusCodeDTO statusCode = response.getStatusCode();
         assertThat(statusCode.getCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(statusCode.getMessage()).isEqualTo(PurchaseResponseDTOBuilder.getMessage(PurchaseStatus.COMPLETED));
@@ -121,6 +123,44 @@ class PurchaseServiceImplTest {
         assertThat(purchaseOpt).isPresent();
         Purchase purchase = purchaseOpt.get();
         assertThat(purchase.isCompleted()).isTrue();
+
+        // no tengo que poder finalizar de nuevo la compra
+        assertThatExceptionOfType(PurchaseServiceException.class)
+                .isThrownBy(() -> service.confirmPurchase(purchaseClosureDTO))
+                .withMessageContaining(PURCHASE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void testBonus() {
+        int defaultPurchasesUntilBonus = Customer.DEFAULT_PURCHASES_UNTIL_NEXT_BONUS;
+        PurchaseRequestDTO purchaseRequestDTO = PurchaseTestConstants.PURCHASE_REQUEST_DTO2.get();
+        String userName = purchaseRequestDTO.getUserName();
+        for (int i = 1; i < defaultPurchasesUntilBonus; i ++) {
+            PurchaseResponseDTO response = service.processPurchaseRequest(purchaseRequestDTO);
+            int receipt1 = response.getReceipt().getId();
+            PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt1);
+            PurchaseResponseDTO purchaseResponseDTO = service.confirmPurchase(purchaseClosureDTO);
+            assertThat(purchaseResponseDTO.getStatusCode().getMessage()).doesNotContain(PurchaseResponseDTOExtra.BONUS_AVAILABLE.getMessage());
+        }
+        PurchaseResponseDTO responseBeforeAdquiringBonus = service.processPurchaseRequest(purchaseRequestDTO);
+        int receipt1 = responseBeforeAdquiringBonus.getReceipt().getId();
+        PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt1);
+        PurchaseResponseDTO responseWithBonusAdquired = service.confirmPurchase(purchaseClosureDTO);
+        assertThat(responseWithBonusAdquired.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_AVAILABLE.getMessage());
+
+        // en la compra siguiente puedo usar el bonus
+        PurchaseResponseDTO responseBeforeConsumingBonus = service.processPurchaseRequest(purchaseRequestDTO);
+        int receipt2 = responseBeforeConsumingBonus.getReceipt().getId();
+        PurchaseClosureDTO purchaseClosureDTO2 = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt2).setUseBonus(true);
+        PurchaseResponseDTO responseWithBonusConsumed = service.confirmPurchase(purchaseClosureDTO2);
+        assertThat(responseWithBonusConsumed.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_CONSUMED.getMessage());
+
+        // el bonus ya no esta disponible
+        PurchaseResponseDTO responseAfterConsumingBonus = service.processPurchaseRequest(purchaseRequestDTO);
+        int receipt3 = responseAfterConsumingBonus.getReceipt().getId();
+        PurchaseClosureDTO purchaseClosureDTO3 = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt3).setUseBonus(true);
+        PurchaseResponseDTO responseAfterBonusConsumed = service.confirmPurchase(purchaseClosureDTO3);
+        assertThat(responseAfterBonusConsumed.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_UNAVAILABLE.getMessage());
     }
 
     @Test
@@ -141,8 +181,8 @@ class PurchaseServiceImplTest {
         int receipt1Id = actualResponse.getReceipt().getId();
         assertPurchaseDataDTOBadRequestOcurr(userName, receipt1Id, r -> service.cancelPurchase(r));
 
-        PurchaseDataDTO purchaseDataDTO = new PurchaseDataDTO().setUserName(userName).setReceipt(receipt1Id);
-        PurchaseResponseDTO response = service.cancelPurchase(purchaseDataDTO);
+        PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt1Id);
+        PurchaseResponseDTO response = service.cancelPurchase(purchaseClosureDTO);
         StatusCodeDTO statusCode = response.getStatusCode();
         assertThat(statusCode.getCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(statusCode.getMessage()).isEqualTo(PurchaseResponseDTOBuilder.getMessage(PurchaseStatus.CANCELED));
@@ -174,19 +214,19 @@ class PurchaseServiceImplTest {
         assertThat(articleResponse.getQuantity()).isEqualTo(articleRequest.getQuantity());
     }
 
-    private void assertPurchaseDataDTOBadRequestOcurr(String userName, int receipt, Consumer<PurchaseDataDTO> action) {
-        BiConsumer<PurchaseDataDTO, String> errorAsserter = (request, message) ->
+    private void assertPurchaseDataDTOBadRequestOcurr(String userName, int receipt, Consumer<PurchaseClosureDTO> action) {
+        BiConsumer<PurchaseClosureDTO, String> errorAsserter = (request, message) ->
                 assertThatExceptionOfType(PurchaseServiceException.class)
                         .isThrownBy(() -> action.accept(request))
                         .withMessageContaining(message);
-        PurchaseDataDTO purchaseDataDTO = new PurchaseDataDTO().setUserName("userName").setReceipt(0);
-        errorAsserter.accept(purchaseDataDTO, INVALID_PURCHASE_ID.getMessage(0));
-        purchaseDataDTO.setReceipt(Integer.MAX_VALUE);
-        errorAsserter.accept(purchaseDataDTO, PURCHASE_NOT_FOUND.getMessage());
-        purchaseDataDTO.setUserName(userName);
-        errorAsserter.accept(purchaseDataDTO, PURCHASE_NOT_FOUND.getMessage());
-        purchaseDataDTO.setUserName("userName").setReceipt(receipt);
-        errorAsserter.accept(purchaseDataDTO, PURCHASE_NOT_FOUND.getMessage());
+        PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName("userName").setReceipt(0);
+        errorAsserter.accept(purchaseClosureDTO, INVALID_PURCHASE_ID.getMessage(0));
+        purchaseClosureDTO.setReceipt(Integer.MAX_VALUE);
+        errorAsserter.accept(purchaseClosureDTO, PURCHASE_NOT_FOUND.getMessage());
+        purchaseClosureDTO.setUserName(userName);
+        errorAsserter.accept(purchaseClosureDTO, PURCHASE_NOT_FOUND.getMessage());
+        purchaseClosureDTO.setUserName("userName").setReceipt(receipt);
+        errorAsserter.accept(purchaseClosureDTO, PURCHASE_NOT_FOUND.getMessage());
     }
 
     @Test

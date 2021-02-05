@@ -6,12 +6,24 @@ import org.jetbrains.annotations.NotNull;
 
 public class Customer implements Persistable<String> {
     private String userName;
+    private int amountOfPurchases;
+    private int bonuses;
+    private int purchasesUntilNextBonus;
+
+    public static final int DEFAULT_PURCHASES_UNTIL_NEXT_BONUS = 3;
 
     public Customer(String userName) {
         this.userName = userName;
+        this.amountOfPurchases = 0;
+        this.bonuses = 0;
+        purchasesUntilNextBonus = DEFAULT_PURCHASES_UNTIL_NEXT_BONUS;
     }
 
-    public Customer() {}
+    public Customer() {
+        this.amountOfPurchases = 0;
+        this.bonuses = 0;
+        purchasesUntilNextBonus = DEFAULT_PURCHASES_UNTIL_NEXT_BONUS;
+    }
 
     public static Customer fromJson(JsonNode jn) {
         Customer customer = new Customer();
@@ -25,6 +37,26 @@ public class Customer implements Persistable<String> {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public boolean hasBonusAvailable() {
+        return bonuses > 0;
+    }
+
+    public void consumeBonus() {
+        bonuses --;
+    }
+
+    public void addPurchase() {
+        amountOfPurchases ++;
+        if (amountOfPurchases == purchasesUntilNextBonus) {
+            addBonus();
+        }
+    }
+
+    private void addBonus() {
+        bonuses ++;
+        purchasesUntilNextBonus += DEFAULT_PURCHASES_UNTIL_NEXT_BONUS;
     }
 
     @Override

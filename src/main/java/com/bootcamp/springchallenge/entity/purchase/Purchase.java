@@ -126,4 +126,8 @@ public class Purchase implements Persistable<Integer> {
         articles.forEach(article -> quantityByArticleId.merge(article.getArticleId(), article.getQuantity(), Integer::sum));
         return quantityByArticleId;
     }
+
+    public void applyBonus() {
+        articles.forEach(a -> a.addDiscount(5));
+    }
 }

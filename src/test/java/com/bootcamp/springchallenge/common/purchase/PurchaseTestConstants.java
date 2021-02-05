@@ -21,7 +21,6 @@ public class PurchaseTestConstants {
     public static final Supplier<PurchaseRequestDTO> PURCHASE_REQUEST_DTO1 = () -> new PurchaseRequestDTO()
             .setUserName(CUSTOMER_1.getUserName())
             .setArticles(List.of(PR_ARTICLE_DTO_181.get(), PR_ARTICLE_DTO_92.get(), PR_ARTICLE_DTO_7.get()));
-
     public static final Supplier<PurchaseRequestDTO> PURCHASE_REQUEST_DTO2 = () -> new PurchaseRequestDTO()
             .setUserName(CUSTOMER_2.getUserName())
             .setArticles(List.of(PR_ARTICLE_DTO_92.get()));

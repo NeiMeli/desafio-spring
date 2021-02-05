@@ -1,7 +1,7 @@
 package com.bootcamp.springchallenge.service.impl.purchase;
 
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
-import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseDataDTO;
+import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseClosureDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestArticleDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseDTO;
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOExtra.*;
 import static com.bootcamp.springchallenge.service.impl.purchase.PurchaseServiceErrorImpl.*;
 
 @Service
@@ -62,7 +63,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
             Article article = articleOpt.get();
             if (!article.hasStock(quantity)) {
-                handleNotEnoughStockSuggestion(article);
+                handleNotEnoughStockSuggestion(article, quantity);
             }
             availableArticles.put(articleId, article);
         });
@@ -77,18 +78,33 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public PurchaseResponseDTO confirmPurchase(PurchaseDataDTO purchaseData) {
+    public PurchaseResponseDTO confirmPurchase(PurchaseClosureDTO purchaseData) {
         validate(purchaseData);
         String userName = purchaseData.getUserName();
         int purchaseId = purchaseData.getReceipt();
         Purchase purchase = findPendingPurchaseOrFail(purchaseId, userName);
+        PurchaseResponseDTOBuilder responseBuilder = new PurchaseResponseDTOBuilder(purchase);
+        Customer customer = customerRepository.find(userName).orElseThrow();
+        if (purchaseData.isUseBonus()) {
+            if (customer.hasBonusAvailable()) {
+                purchase.applyBonus();
+                customer.consumeBonus();
+                responseBuilder.withExtra(BONUS_CONSUMED.getMessage());
+            } else {
+                responseBuilder.withExtra(BONUS_UNAVAILABLE.getMessage());
+            }
+        }
         purchase.complete();
+        customer.addPurchase();
         purchaseRepository.persist(purchase);
-        return buildResponseDTO(purchase);
+        if (customer.hasBonusAvailable()) {
+            responseBuilder.withExtra(BONUS_AVAILABLE.getMessage());
+        }
+        return responseBuilder.build();
     }
 
     @Override
-    public PurchaseResponseDTO cancelPurchase(PurchaseDataDTO purchaseData) {
+    public PurchaseResponseDTO cancelPurchase(PurchaseClosureDTO purchaseData) {
         validate(purchaseData);
         String userName = purchaseData.getUserName();
         int purchaseId = purchaseData.getReceipt();
@@ -120,7 +136,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         return new PurchaseResponseDTOBuilder(purchase).build();
     }
 
-    private void validate(PurchaseDataDTO purchaseConfirmation) {
+    private void validate(PurchaseClosureDTO purchaseConfirmation) {
         validateUserName(purchaseConfirmation.getUserName());
         int purchaseId = purchaseConfirmation.getReceipt();
         if (purchaseId <= 0) {
@@ -168,16 +184,20 @@ public class PurchaseServiceImpl implements PurchaseService {
         return purchaseOpt.orElseGet(() -> new Purchase(userName));
     }
 
-    private void handleNotEnoughStockSuggestion(Article article) {
+    private void handleNotEnoughStockSuggestion(Article article, int quantity) {
         Category category = article.getCategory();
-        Query query = new Query().withCategories(List.of(category));
+        Query query = new Query().withCategories(List.of(category)).withStockAvailable(quantity);
         List<ArticleResponseDTO> suggestedArticles = articleQueryService.query(query);
         final StringBuilder suggestionMessage = new StringBuilder();
-        suggestionMessage.append("Otros productos en categoría ").append(category.getValue()).append(": ");
-        List<String> suggestions = suggestedArticles.stream()
-                .map(a -> String.format("%s %s %s", a.getId(), a.getName(), a.getPrice()))
-                .collect(Collectors.toList());
-        suggestionMessage.append(String.join(", ", suggestions));
+        if (!suggestedArticles.isEmpty()) {
+            suggestionMessage.append(String.format("Otros productos con stock %s en categoria ", quantity)).append(category.getValue()).append(": ");
+            List<String> suggestions = suggestedArticles.stream()
+                    .map(a -> String.format("%s %s %s", a.getId(), a.getName(), a.getPrice()))
+                    .collect(Collectors.toList());
+            suggestionMessage.append(String.join(", ", suggestions));
+        } else {
+            suggestionMessage.append(String.format("No hay otros productos con stock %s en categoria ", quantity)).append(category.getValue());
+        }
         throw new PurchaseServiceException(NOT_ENOUGH_STOCK_SUGGESTION, article.describe(), suggestionMessage.toString());
     }
 }

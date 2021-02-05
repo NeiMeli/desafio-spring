@@ -23,6 +23,7 @@ public class ArticleQueryController extends BadRequestHandlerController {
                                           @RequestParam (required = false) Double maxPrice,
                                           @RequestParam (required = false) Boolean freeShipping,
                                           @RequestParam (required = false) Integer minPrestige,
+                                          @RequestParam (required = false) Integer stock,
                                           @RequestParam (required = false) Integer order) {
         Query query = new Query()
                 .withName(name)
@@ -30,6 +31,7 @@ public class ArticleQueryController extends BadRequestHandlerController {
                 .withMaxPrice(maxPrice)
                 .withFreeShipping(freeShipping)
                 .withMinPrestige(minPrestige)
+                .withStockAvailable(stock)
                 .withOrder(order);
         return service.query(query);
     }

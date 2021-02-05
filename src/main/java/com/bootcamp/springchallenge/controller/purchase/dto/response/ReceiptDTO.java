@@ -7,6 +7,12 @@ public class ReceiptDTO {
     private String status;
     private List<PurchaseResponseArticleDTO> articles;
 
+    private double total;
+
+    public double getTotal() {
+        return total;
+    }
+
     public ReceiptDTO() {
     }
 
@@ -32,8 +38,8 @@ public class ReceiptDTO {
         return articles;
     }
 
-    public ReceiptDTO setArticles(List<PurchaseResponseArticleDTO> articles) {
+    public void setArticles(List<PurchaseResponseArticleDTO> articles) {
         this.articles = articles;
-        return this;
+        total = articles.stream().mapToDouble(PurchaseResponseArticleDTO::getCost).reduce(0, Double::sum);
     }
 }

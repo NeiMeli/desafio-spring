@@ -9,8 +9,7 @@ import com.bootcamp.springchallenge.entity.purchase.PurchaseArticle;
 import com.bootcamp.springchallenge.entity.purchase.PurchaseStatus;
 import org.springframework.http.HttpStatus;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PurchaseResponseDTOBuilder {
@@ -29,9 +28,11 @@ public class PurchaseResponseDTOBuilder {
     }
 
     private final Purchase purchase;
+    private List<String> extras;
 
     public PurchaseResponseDTOBuilder(Purchase purchase) {
         this.purchase = purchase;
+        extras = Collections.emptyList();
     }
 
     public PurchaseResponseDTO build() {
@@ -54,8 +55,13 @@ public class PurchaseResponseDTOBuilder {
 
     private StatusCodeDTO buildStatusCode() {
         final StatusCodeDTO statusCode = new StatusCodeDTO();
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(messages.get(purchase.getStatus()));
+        if (!extras.isEmpty()) {
+            stringBuilder.append(String.join(". ", extras));
+        }
         statusCode.setCode(HttpStatus.OK.value())
-                .setMessage(messages.get(purchase.getStatus()));
+                .setMessage(stringBuilder.toString());
         return statusCode;
     }
 
@@ -66,5 +72,10 @@ public class PurchaseResponseDTOBuilder {
                 .setQuantity(purchaseArticle.getQuantity())
                 .setCost(purchaseArticle.calculateCost());
         return dto;
+    }
+
+    public void withExtra(String extra) {
+        if (extras.isEmpty()) extras = new ArrayList<>();
+        extras.add(extra);
     }
 }

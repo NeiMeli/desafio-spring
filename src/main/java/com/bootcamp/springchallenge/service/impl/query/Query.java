@@ -54,6 +54,11 @@ public class Query {
         return this;
     }
 
+    public Query withStockAvailable(@Nullable Integer stockAvailable) {
+        if (stockAvailable != null) filters.put(QueryParam.STOCK_AVAILABLE, p -> p.hasStock(stockAvailable));
+        return this;
+    }
+
     public Query withOrder(@Nullable Integer order) {
         if (order != null) {
             orderType = OrderType.fromId(order);

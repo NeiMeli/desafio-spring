@@ -5,5 +5,6 @@ public enum QueryParam {
     CATEGORY,
     FREE_SHIPPING,
     MAX_PRICE,
-    MIN_PRESTIGE;
+    MIN_PRESTIGE,
+    STOCK_AVAILABLE;
 }

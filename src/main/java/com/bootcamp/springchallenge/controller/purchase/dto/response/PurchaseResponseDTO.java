@@ -10,17 +10,15 @@ public class PurchaseResponseDTO {
         return receipt;
     }
 
-    public PurchaseResponseDTO setReceipt(ReceiptDTO receipt) {
+    public void setReceipt(ReceiptDTO receipt) {
         this.receipt = receipt;
-        return this;
     }
 
     public StatusCodeDTO getStatusCode() {
         return statusCode;
     }
 
-    public PurchaseResponseDTO setStatusCode(StatusCodeDTO statusCode) {
+    public void setStatusCode(StatusCodeDTO statusCode) {
         this.statusCode = statusCode;
-        return this;
     }
 }

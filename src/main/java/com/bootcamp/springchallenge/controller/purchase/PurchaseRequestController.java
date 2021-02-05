@@ -1,7 +1,7 @@
 package com.bootcamp.springchallenge.controller.purchase;
 
 import com.bootcamp.springchallenge.controller.BadRequestHandlerController;
-import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseDataDTO;
+import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseClosureDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseDTO;
 import com.bootcamp.springchallenge.service.PurchaseService;
@@ -23,12 +23,12 @@ public class PurchaseRequestController extends BadRequestHandlerController {
     }
 
     @PostMapping("/purchase-confirmation")
-    public PurchaseResponseDTO purchaseConfirmation(@RequestBody PurchaseDataDTO purchaseData) {
+    public PurchaseResponseDTO purchaseConfirmation(@RequestBody PurchaseClosureDTO purchaseData) {
         return service.confirmPurchase(purchaseData);
     }
 
     @PostMapping("/purchase-cancelation")
-    public PurchaseResponseDTO purchaseCancelation(@RequestBody PurchaseDataDTO purchaseData) {
+    public PurchaseResponseDTO purchaseCancelation(@RequestBody PurchaseClosureDTO purchaseData) {
         return service.cancelPurchase(purchaseData);
     }
 }
