@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "userName": "user1@gmail.com",
+    "articles": [
+      {
+        "articleId": 7,
+        "articleName": "Soldadora",
+        "price": 7215,
+        "discount": 30,
+        "quantity": 2
+      }
+    ],
+    "status": "Pendiente"
+  }
+]
