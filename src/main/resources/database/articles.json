@@ -10,6 +10,16 @@
         "prestige":4
     },
     {
+        "id": 2,
+        "name":"Guantes",
+        "category":"Indumentaria",
+        "brand":"Makita",
+        "price":2800.0,
+        "stock":14,
+        "freeShipping":false,
+        "prestige":3
+    },
+    {
         "id": 12,
         "name":"Taladro",
         "category":"Herramientas",

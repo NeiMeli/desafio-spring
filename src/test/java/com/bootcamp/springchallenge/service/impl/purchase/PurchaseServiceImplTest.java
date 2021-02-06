@@ -140,12 +140,14 @@ class PurchaseServiceImplTest {
             int receipt1 = response.getReceipt().getId();
             PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt1);
             PurchaseResponseDTO purchaseResponseDTO = service.confirmPurchase(purchaseClosureDTO);
+            assertThat(purchaseResponseDTO.getStatusCode().getCode()).isEqualTo(HttpStatus.OK.value());
             assertThat(purchaseResponseDTO.getStatusCode().getMessage()).doesNotContain(PurchaseResponseDTOExtra.BONUS_AVAILABLE.getMessage());
         }
         PurchaseResponseDTO responseBeforeAdquiringBonus = service.processPurchaseRequest(purchaseRequestDTO);
         int receipt1 = responseBeforeAdquiringBonus.getReceipt().getId();
         PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt1);
         PurchaseResponseDTO responseWithBonusAdquired = service.confirmPurchase(purchaseClosureDTO);
+        assertThat(responseWithBonusAdquired.getStatusCode().getCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(responseWithBonusAdquired.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_AVAILABLE.getMessage());
 
         // en la compra siguiente puedo usar el bonus
@@ -153,6 +155,7 @@ class PurchaseServiceImplTest {
         int receipt2 = responseBeforeConsumingBonus.getReceipt().getId();
         PurchaseClosureDTO purchaseClosureDTO2 = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt2).setUseBonus(true);
         PurchaseResponseDTO responseWithBonusConsumed = service.confirmPurchase(purchaseClosureDTO2);
+        assertThat(responseWithBonusConsumed.getStatusCode().getCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(responseWithBonusConsumed.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_CONSUMED.getMessage());
 
         // el bonus ya no esta disponible
@@ -160,6 +163,7 @@ class PurchaseServiceImplTest {
         int receipt3 = responseAfterConsumingBonus.getReceipt().getId();
         PurchaseClosureDTO purchaseClosureDTO3 = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt3).setUseBonus(true);
         PurchaseResponseDTO responseAfterBonusConsumed = service.confirmPurchase(purchaseClosureDTO3);
+        assertThat(responseAfterBonusConsumed.getStatusCode().getCode()).isEqualTo(HttpStatus.PARTIAL_CONTENT.value());
         assertThat(responseAfterBonusConsumed.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_UNAVAILABLE.getMessage());
     }
 
@@ -214,6 +218,19 @@ class PurchaseServiceImplTest {
         assertThat(articleResponse.getQuantity()).isEqualTo(articleRequest.getQuantity());
     }
 
+    @Test
+    void testMultipleArticlesWithNotEnoughStock() {
+        PurchaseRequestDTO request = PurchaseTestConstants.PURCHASE_REQUEST_DTO1.get();
+        request.getArticles().forEach(a -> a.setQuantity(a.getQuantity() + 1000));
+        PurchaseResponseDTO response = service.processPurchaseRequest(request);
+        StatusCodeDTO statusCode = response.getStatusCode();
+        assertThat(statusCode.getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        String message = statusCode.getMessage();
+        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(181));
+        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(92));
+        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(7));
+    }
+
     private void assertPurchaseDataDTOBadRequestOcurr(String userName, int receipt, Consumer<PurchaseClosureDTO> action) {
         BiConsumer<PurchaseClosureDTO, String> errorAsserter = (request, message) ->
                 assertThatExceptionOfType(PurchaseServiceException.class)
@@ -264,7 +281,10 @@ class PurchaseServiceImplTest {
 
         // no hay stock
         invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setQuantity(3000)));
-        errorAsserter.accept(invalidRequest, NOT_ENOUGH_STOCK.getMessage(7));
+        PurchaseResponseDTO responseWithStockError = service.processPurchaseRequest(invalidRequest);
+        StatusCodeDTO statusCode = responseWithStockError.getStatusCode();
+        assertThat(statusCode.getMessage()).contains(NOT_ENOUGH_STOCK.getMessage(7));
+        assertThat(statusCode.getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 
     @Test
@@ -281,9 +301,9 @@ class PurchaseServiceImplTest {
         // le pongo mucha cantidad a uno para que falle el stock
         PurchaseRequestArticleDTO purchaseRequestArticleDTO = request1.getArticles().stream().filter(a -> a.getArticleId() == 7).findFirst().orElseThrow();
         purchaseRequestArticleDTO.setQuantity(initialQuantitiesByArticleIdMap.get(purchaseRequestArticleDTO.getArticleId()) + 100);
-        assertThatExceptionOfType(PurchaseServiceException.class)
-                .isThrownBy(() -> service.processPurchaseRequest(request1))
-                .withMessageContaining(NOT_ENOUGH_STOCK.getMessage(7));
+
+        PurchaseResponseDTO responseWithStockError = service.processPurchaseRequest(request1);
+        assertThat(responseWithStockError.getStatusCode().getMessage()).contains(NOT_ENOUGH_STOCK.getMessage(7));
 
         // al haber fallado la reserva, no tiene que haber reservado nada
         initialQuantitiesByArticleIdMap.forEach((id, initialQuantity) -> {

@@ -89,6 +89,6 @@ public class PurchaseArticle {
     public void addDiscount(int discount) {
         if (this.discount + discount < 100) {
             this.discount += discount;
-        };
+        }
     }
 }

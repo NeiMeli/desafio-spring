@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.controller.articlequery;
 
-import com.bootcamp.springchallenge.controller.BadRequestHandlerController;
+import com.bootcamp.springchallenge.controller.ExceptionHandlerController;
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
 import com.bootcamp.springchallenge.service.ArticleQueryService;
 import com.bootcamp.springchallenge.service.impl.query.Query;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/articles")
-public class ArticleQueryController extends BadRequestHandlerController {
+public class ArticleQueryController extends ExceptionHandlerController {
 
     @Autowired
     ArticleQueryService service;

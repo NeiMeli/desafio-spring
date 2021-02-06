@@ -1,29 +1,28 @@
 package com.bootcamp.springchallenge.service.impl.purchase;
 
-import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseClosureDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestArticleDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOBuilder;
 import com.bootcamp.springchallenge.entity.Article;
-import com.bootcamp.springchallenge.entity.Category;
 import com.bootcamp.springchallenge.entity.Customer;
 import com.bootcamp.springchallenge.entity.purchase.Purchase;
 import com.bootcamp.springchallenge.repository.ArticleRepository;
 import com.bootcamp.springchallenge.repository.CustomerRepository;
 import com.bootcamp.springchallenge.repository.PurchaseRepository;
-import com.bootcamp.springchallenge.service.ArticleQueryService;
 import com.bootcamp.springchallenge.service.PurchaseService;
+import com.bootcamp.springchallenge.service.impl.purchase.util.ArticleUtil;
 import com.bootcamp.springchallenge.service.impl.query.Query;
+import com.bootcamp.springchallenge.service.impl.query.QueryParam;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOExtra.*;
@@ -40,39 +39,51 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Autowired
     CustomerRepository customerRepository;
 
-    @Autowired
-    ArticleQueryService articleQueryService;
-
     @Override
     public PurchaseResponseDTO processPurchaseRequest(PurchaseRequestDTO purchaseRequest) {
         validate(purchaseRequest); // valido en memoria lo que pueda antes de ir a los repo
         final Purchase purchase = findOrCreatePurchase(purchaseRequest.getUserName());
-        processArticles(purchaseRequest.getArticles(), purchase);
+        PurchaseResponseDTOBuilder responseBuilder = new PurchaseResponseDTOBuilder(purchase);
+        try {
+            processArticles(purchaseRequest.getArticles(), purchase);
+        } catch (NotEnoughStockException e) {
+            responseBuilder.withHttpStatus(HttpStatus.BAD_REQUEST);
+            responseBuilder.withMessage(e.getMessage());
+        }
         purchaseRepository.persist(purchase);
-        return buildResponseDTO(purchase);
+        return responseBuilder.build();
     }
 
-    private void processArticles(List<PurchaseRequestArticleDTO> articles, Purchase purchase) {
-        final Map<Integer, Integer> quantitiesByArticleId = new HashMap<>();
-        articles.forEach(a -> quantitiesByArticleId.merge(a.getArticleId(), a.getQuantity(), Integer::sum));
+    private void processArticles(List<PurchaseRequestArticleDTO> articles, Purchase purchase) throws NotEnoughStockException {
+        final Map<Integer, Integer> quantitiesByArticleId = ArticleUtil.getQuantitiesByArticleDtoId(articles);
         final Map<Integer, Article> availableArticles = new HashMap<>();
+        final List<Runnable> reserveAction = new ArrayList<>();
+        final AtomicReference<List<String>> notEnoughStockSuggestions = new AtomicReference<>(Collections.emptyList());
+
+        // Valido que haya stock de cada producto antes de reservar
+        // Lo hago sincronico para acumular sugerencias ante falta de stock
         quantitiesByArticleId.forEach((articleId, quantity) -> {
-            Optional<Article> articleOpt = articleRepository.find(articleId);
-            if (articleOpt.isEmpty()) {
-                throw new PurchaseServiceException(ARTICLE_NOT_FOUND, articleId);
+            Article article = articleRepository.find(articleId).orElseThrow(() -> new PurchaseServiceException(ARTICLE_NOT_FOUND, articleId));
+            if (article.hasStock(quantity)) {
+                reserveAction.add(() -> article.reserveStock(quantity));
+                availableArticles.put(articleId, article); // lo necesito para luego completar el purchase
+            } else {
+                if (notEnoughStockSuggestions.get().isEmpty()) notEnoughStockSuggestions.set(new ArrayList<>());
+                notEnoughStockSuggestions.get().add(generateNotEnoughStockSuggestion(article, quantity));
             }
-            Article article = articleOpt.get();
-            if (!article.hasStock(quantity)) {
-                handleNotEnoughStockSuggestion(article, quantity);
-            }
-            availableArticles.put(articleId, article);
         });
 
+        List<String> suggestions = notEnoughStockSuggestions.get();
+        if (!suggestions.isEmpty()) throw new NotEnoughStockException(String.join(". ", suggestions));
+
+        // Solo si todos los items tienen stock, hago la reserva forma asincrónica
+        reserveAction.stream().parallel().forEach(Runnable::run);
+
+        // Agrego los articulos a Purchase, tiene que ser sincrónico
         articles.forEach(dto -> {
             int articleId = dto.getArticleId();
             int quantity = dto.getQuantity();
             Article article = availableArticles.get(articleId);
-            article.reserveStock(quantity);
             purchase.addArticle(articleId, article.getName(), quantity, dto.getDiscount(), article.getPrice());
         });
     }
@@ -91,6 +102,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 customer.consumeBonus();
                 responseBuilder.withExtra(BONUS_CONSUMED.getMessage());
             } else {
+                responseBuilder.withHttpStatus(HttpStatus.PARTIAL_CONTENT);
                 responseBuilder.withExtra(BONUS_UNAVAILABLE.getMessage());
             }
         }
@@ -116,8 +128,9 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     private void releaseStock(Purchase purchase) {
-        Map<Integer, Integer> quantityByArticleId = purchase.getQuantitiesByArticleIdMap();
-        quantityByArticleId.forEach((id, quantity) -> {
+        Map<Integer, Integer> quantityByArticleId = ArticleUtil.getQuantitiesByArticleId(purchase.getArticles());
+        quantityByArticleId.keySet().stream().parallel().forEach(id -> {
+            Integer quantity = quantityByArticleId.get(id);
             Article article = articleRepository.find(id).orElseThrow(); // no puede no existir el producto en este punto
             article.releaseStock(quantity);
             articleRepository.persist(article);
@@ -184,20 +197,34 @@ public class PurchaseServiceImpl implements PurchaseService {
         return purchaseOpt.orElseGet(() -> new Purchase(userName));
     }
 
-    private void handleNotEnoughStockSuggestion(Article article, int quantity) {
-        Category category = article.getCategory();
-        Query query = new Query().withCategories(List.of(category)).withStockAvailable(quantity);
-        List<ArticleResponseDTO> suggestedArticles = articleQueryService.query(query);
-        final StringBuilder suggestionMessage = new StringBuilder();
-        if (!suggestedArticles.isEmpty()) {
-            suggestionMessage.append(String.format("Otros productos con stock %s en categoria ", quantity)).append(category.getValue()).append(": ");
-            List<String> suggestions = suggestedArticles.stream()
-                    .map(a -> String.format("%s %s %s", a.getId(), a.getName(), a.getPrice()))
-                    .collect(Collectors.toList());
-            suggestionMessage.append(String.join(", ", suggestions));
-        } else {
-            suggestionMessage.append(String.format("No hay otros productos con stock %s en categoria ", quantity)).append(category.getValue());
+    private String generateNotEnoughStockSuggestion(Article article, int quantity) {
+        Query query = new Query().withStockAvailable(quantity);
+        List<QueryParam> compatibleParams = QueryParam.getCompatibleParams();
+        String articleDescription = article.describe();
+        final AtomicReference<String> suggestion = new AtomicReference<>("");
+        final Supplier<String> finalMessage = () -> NOT_ENOUGH_STOCK_SUGGESTION.getMessage(articleDescription, suggestion.get());
+        int index = 0;
+        while (suggestion.get().isEmpty() && index < compatibleParams.size()) {
+            QueryParam queryParam = compatibleParams.get(index);
+            query.with(queryParam, article);
+            suggestion.set(generateNotEnoughStockSuggestion(article, quantity, query));
+            if (suggestion.get().isEmpty()) {
+                query.without(queryParam);
+                index ++;
+            }
         }
-        throw new PurchaseServiceException(NOT_ENOUGH_STOCK_SUGGESTION, article.describe(), suggestionMessage.toString());
+        if (suggestion.get().isEmpty()) {
+            suggestion.set(String.format("No hay productos similares a %s con stock %s", articleDescription, quantity));
+        } else {
+            suggestion.set(String.format("Otros productos disponibles con %s similar: %s", compatibleParams.get(index).getLabel(), suggestion));
+        }
+        return finalMessage.get();
+    }
+
+    private String generateNotEnoughStockSuggestion(Article article, int quantity, Query query) {
+        List<String> suggestedArticles = articleRepository.listWhere(query.buildPredicate())
+                .map(Article::describe)
+                .collect(Collectors.toList());
+        return String.join(", ", suggestedArticles);
     }
 }

@@ -29,10 +29,14 @@ public class PurchaseResponseDTOBuilder {
 
     private final Purchase purchase;
     private List<String> extras;
+    private HttpStatus httpStatus;
+    private String errorMessage;
 
     public PurchaseResponseDTOBuilder(Purchase purchase) {
         this.purchase = purchase;
         extras = Collections.emptyList();
+        httpStatus = HttpStatus.OK;
+        errorMessage = null;
     }
 
     public PurchaseResponseDTO build() {
@@ -56,11 +60,11 @@ public class PurchaseResponseDTOBuilder {
     private StatusCodeDTO buildStatusCode() {
         final StatusCodeDTO statusCode = new StatusCodeDTO();
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(messages.get(purchase.getStatus()));
+        stringBuilder.append(errorMessage != null ? errorMessage : messages.get(purchase.getStatus()));
         if (!extras.isEmpty()) {
             stringBuilder.append(String.join(". ", extras));
         }
-        statusCode.setCode(HttpStatus.OK.value())
+        statusCode.setCode(this.httpStatus.value())
                 .setMessage(stringBuilder.toString());
         return statusCode;
     }
@@ -77,5 +81,13 @@ public class PurchaseResponseDTOBuilder {
     public void withExtra(String extra) {
         if (extras.isEmpty()) extras = new ArrayList<>();
         extras.add(extra);
+    }
+
+    public void withHttpStatus(HttpStatus httpStatus) {
+        this.httpStatus = httpStatus;
+    }
+
+    public void withMessage(String message) {
+        this.errorMessage = message;
     }
 }

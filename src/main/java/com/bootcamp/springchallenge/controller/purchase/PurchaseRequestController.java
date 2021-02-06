@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.controller.purchase;
 
-import com.bootcamp.springchallenge.controller.BadRequestHandlerController;
+import com.bootcamp.springchallenge.controller.ExceptionHandlerController;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseClosureDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseDTO;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1")
-public class PurchaseRequestController extends BadRequestHandlerController {
+public class PurchaseRequestController extends ExceptionHandlerController {
     @Autowired
     PurchaseService service;
 

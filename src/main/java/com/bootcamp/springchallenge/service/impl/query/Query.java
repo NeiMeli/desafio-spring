@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.bootcamp.springchallenge.service.impl.query.QueryParam.BRAND;
+
 public class Query {
     protected final Map<QueryParam, Predicate<Article>> filters;
     protected @NotNull OrderType orderType;
@@ -21,6 +23,11 @@ public class Query {
 
     public Query withName(@Nullable String name) {
         if (name != null) filters.put(QueryParam.NAME, p -> p.getName().contains(name));
+        return this;
+    }
+
+    public Query without(QueryParam param) {
+        filters.remove(param);
         return this;
     }
 
@@ -74,5 +81,19 @@ public class Query {
 
     public Comparator<Article> getComparator() {
         return orderType.getComparator();
+    }
+
+    public Query withCategory(Category category) {
+        return withCategories(List.of(category));
+    }
+
+    public Query withBrand(@Nullable String brand) {
+        if (brand != null) filters.put(BRAND, a -> a.getBrand().equals(brand));
+        return this;
+    }
+
+    public Query with(QueryParam param, Article article) {
+        filters.put(param, param.buildPredicate(article));
+        return this;
     }
 }

@@ -54,13 +54,13 @@ class ArticleQueryServiceImplTest {
                 .without(NAME)
                 .withFreeShipping(false)
                 .withMinPrestige(3);
-        qr.addResults(21, 40, 16);
+        qr.addResults(2, 21, 40, 16);
         List<ArticleResponseDTO> actualResults5 = service.query(query);
         Assertions.assertThat(qr.hasResult(actualResults5)).isTrue();
 
         qr.clearResults();
         query.withOrder(0);
-        qr.addResults(21, 16, 40); // orden esperado
+        qr.addResults(21, 16, 2, 40); // orden esperado
         List<ArticleResponseDTO> actualResults6 = service.query(query);
         Assertions.assertThat(qr.hasResult(actualResults6)).isTrue();
 
@@ -73,7 +73,7 @@ class ArticleQueryServiceImplTest {
         qr.clearResults();
         query.without(MAX_PRICE);
         query.withStockAvailable(4);
-        qr.addResults(16);
+        qr.addResults(16, 2);
         List<ArticleResponseDTO> actualResults8 = service.query(query);
         Assertions.assertThat(qr.hasResult(actualResults8)).isTrue();
     }

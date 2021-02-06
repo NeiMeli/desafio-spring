@@ -131,6 +131,6 @@ public class Article implements Persistable<Integer> {
     }
 
     public String describe() {
-        return id + " - " + name;
+        return id + " - " + name + " - " + brand;
     }
 }

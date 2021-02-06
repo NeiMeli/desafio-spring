@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.controller.customer;
 
-import com.bootcamp.springchallenge.controller.BadRequestHandlerController;
+import com.bootcamp.springchallenge.controller.ExceptionHandlerController;
 import com.bootcamp.springchallenge.controller.customer.dto.CustomerRequestDTO;
 import com.bootcamp.springchallenge.controller.customer.dto.CustomerResponseDTO;
 import com.bootcamp.springchallenge.service.CustomerService;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-public class CustomerController extends BadRequestHandlerController {
+public class CustomerController extends ExceptionHandlerController {
 
     @Autowired
     CustomerService service;

@@ -6,10 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-public abstract class BadRequestHandlerController {
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorDTO> handleBadRequestException(BadRequestException e) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
+public abstract class ExceptionHandlerController {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDTO> handleBadRequestException(Exception e) {
+        final HttpStatus status;
+        if (e instanceof BadRequestException) status = HttpStatus.BAD_REQUEST;
+        else status = HttpStatus.INTERNAL_SERVER_ERROR;
+
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setStatus(status.value());
         errorDTO.setError(e.getClass().getSimpleName());
