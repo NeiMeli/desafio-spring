@@ -1,6 +1,7 @@
 package com.bootcamp.springchallenge.repository.impl;
 
 import com.bootcamp.springchallenge.entity.customer.Customer;
+import com.bootcamp.springchallenge.exception.BadRequestException;
 import com.bootcamp.springchallenge.repository.CacheDBTable;
 import com.bootcamp.springchallenge.repository.CustomerRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,7 +21,7 @@ public class CustomerCacheRepository implements CustomerRepository {
         database = new CacheDBTable<>() {
             @Override
             protected @NotNull String generateNextId() {
-                throw new RuntimeException("Se intenta guardar cliente sin nombre");
+                throw new BadRequestException("No se puede guardar un cliente sin nombre!");
             }
         };
         JsonNode jsonNodes = JsonDBUtil.parseDatabase("src/main/resources/database/customers.json");

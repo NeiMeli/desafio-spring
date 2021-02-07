@@ -48,6 +48,10 @@ public enum Province {
         this.label = label;
     }
 
+    public static Province defaultProvince() {
+        return UNDEFINED;
+    }
+
     private static class ProvinceNotFoundException extends BadRequestException {
         public ProvinceNotFoundException(String label) {
             super(String.format("No se encontro la provincia %s", label));

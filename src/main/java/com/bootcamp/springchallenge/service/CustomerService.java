@@ -13,4 +13,6 @@ public interface CustomerService {
     List<CustomerResponseDTO> listAll();
 
     List<CustomerResponseDTO> query(@NotNull CustomerQuery query);
+
+    CustomerResponseDTO update(CustomerRequestDTO customer);
 }

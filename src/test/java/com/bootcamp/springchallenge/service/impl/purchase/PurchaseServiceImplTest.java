@@ -60,28 +60,28 @@ class PurchaseServiceImplTest {
         PurchaseResponseDTO actualResponse = service.processPurchaseRequest(request1);
         List<PurchaseResponseArticleDTO> articles = actualResponse.getReceipt().getArticles();
         assertThat(articles).hasSize(3);
-        assertThat(articles.stream().anyMatch(compareArticle(7, "Soldadora", 1, 5050.5d))).isTrue();
-        assertThat(articles.stream().anyMatch(compareArticle(181, "Medias", 2, 600d))).isTrue();
+        assertThat(articles.stream().anyMatch(compareArticle(4, "Soldadora", 1, 5050.5d))).isTrue();
+        assertThat(articles.stream().anyMatch(compareArticle(12, "Medias", 2, 600d))).isTrue();
 
-        assertThat(articles.stream().anyMatch(compareArticle(92, "Short", 1, 3900d))).isTrue();
+        assertThat(articles.stream().anyMatch(compareArticle(13, "Short", 1, 3900d))).isTrue();
 
-        // agrego un 7 con otro descuento, tiene que agregarme otro articulo
+        // agrego un 4 con otro descuento, tiene que agregarme otro articulo
         PurchaseRequestDTO request2 = new PurchaseRequestDTO()
                 .setUserName(request1.getUserName())
-                .setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7_2.get()));
+                .setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4_2.get()));
         PurchaseResponseDTO actualResponse2 = service.processPurchaseRequest(request2);
         List<PurchaseResponseArticleDTO> articles2 = actualResponse2.getReceipt().getArticles();
         assertThat(articles2).hasSize(4);
-        assertThat(articles2.stream().anyMatch(compareArticle(7, "Soldadora", 1, 6493.5d))).isTrue();
+        assertThat(articles2.stream().anyMatch(compareArticle(4, "Soldadora", 1, 6493.5d))).isTrue();
 
-        // agrego un 181 con el mismo descuento, me lo tiene que sumar
+        // agrego un 12 con el mismo descuento, me lo tiene que sumar
         PurchaseRequestDTO request3 = new PurchaseRequestDTO()
                 .setUserName(request1.getUserName())
-                .setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_181.get().setQuantity(1)));
+                .setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_12.get().setQuantity(1)));
         PurchaseResponseDTO actualResponse3 = service.processPurchaseRequest(request3);
         List<PurchaseResponseArticleDTO> articles3 = actualResponse3.getReceipt().getArticles();
         assertThat(articles3).hasSize(4);
-        assertThat(articles3.stream().filter(a -> a.getId() == 181).allMatch(compareArticle(181, "Medias", 3, 900d))).isTrue();
+        assertThat(articles3.stream().filter(a -> a.getId() == 12).allMatch(compareArticle(12, "Medias", 3, 900d))).isTrue();
 
         // veamos como quedo la base de datos
         // Purchase
@@ -91,7 +91,7 @@ class PurchaseServiceImplTest {
         articles3.forEach(a -> assertThat(purchaseArticles.stream().anyMatch(pa -> pa.getArticleId() == a.getId() && pa.getQuantity() == a.getQuantity())).isTrue());
 
         // Article (se tiene que haber movido el stock)
-        final Map<Integer, Integer> initialStockByArticle = Map.of(7, 10, 181, 8, 92, 9);
+        final Map<Integer, Integer> initialStockByArticle = Map.of(4, 10, 12, 8, 13, 9);
         List<Integer> articlesId = articles3.stream().map(PurchaseResponseArticleDTO::getId).collect(Collectors.toList());
         Stream<Article> articleStream = articleRepository.listWhere(ar -> articlesId.contains(ar.getId()));
         assertThat(articleStream).allMatch(article -> {
@@ -227,9 +227,9 @@ class PurchaseServiceImplTest {
         StatusCodeDTO statusCode = response.getStatusCode();
         assertThat(statusCode.getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         String message = statusCode.getMessage();
-        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(181));
-        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(92));
-        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(7));
+        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(12));
+        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(13));
+        assertThat(message).contains(NOT_ENOUGH_STOCK.getMessage(4));
     }
 
     private void assertPurchaseDataDTOBadRequestOcurr(String userName, int receipt, Consumer<PurchaseClosureDTO> action) {
@@ -263,28 +263,28 @@ class PurchaseServiceImplTest {
         errorAsserter.accept(invalidRequest, EMPTY_ARTICLE_LIST.getMessage());
 
         // articulo invalido
-        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setArticleId(-5)));
+        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4.get().setArticleId(-5)));
         errorAsserter.accept(invalidRequest, INVALID_ARTICLE_ID.getMessage(-5));
 
         // articulo inexistente
-        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setArticleId(Integer.MAX_VALUE)));
+        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4.get().setArticleId(Integer.MAX_VALUE)));
         errorAsserter.accept(invalidRequest, ARTICLE_NOT_FOUND.getMessage(Integer.MAX_VALUE));
 
         // decuento invalido
-        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setDiscount(-500)));
+        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4.get().setDiscount(-500)));
         errorAsserter.accept(invalidRequest, INVALID_DISCOUNT_VALUE.getMessage(-500));
-        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setDiscount(105)));
+        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4.get().setDiscount(105)));
         errorAsserter.accept(invalidRequest, INVALID_DISCOUNT_VALUE.getMessage(105));
 
         // cantidad invalida
-        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setQuantity(-500)));
+        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4.get().setQuantity(-500)));
         errorAsserter.accept(invalidRequest, INVALID_QUANTITY.getMessage(-500));
 
         // no hay stock
-        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_7.get().setQuantity(3000)));
+        invalidRequest.setArticles(List.of(PurchaseTestConstants.PR_ARTICLE_DTO_4.get().setQuantity(3000)));
         PurchaseResponseDTO responseWithStockError = service.processPurchaseRequest(invalidRequest);
         StatusCodeDTO statusCode = responseWithStockError.getStatusCode();
-        assertThat(statusCode.getMessage()).contains(NOT_ENOUGH_STOCK.getMessage(7));
+        assertThat(statusCode.getMessage()).contains(NOT_ENOUGH_STOCK.getMessage(4));
         assertThat(statusCode.getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 
@@ -300,11 +300,11 @@ class PurchaseServiceImplTest {
         // le cambio el nombre porque el otro user tiene una orden ya hecha que me complica el stock
         request1.setUserName(CustomerTestConstants.CUSTOMER_2.getUserName());
         // le pongo mucha cantidad a uno para que falle el stock
-        PurchaseRequestArticleDTO purchaseRequestArticleDTO = request1.getArticles().stream().filter(a -> a.getArticleId() == 7).findFirst().orElseThrow();
+        PurchaseRequestArticleDTO purchaseRequestArticleDTO = request1.getArticles().stream().filter(a -> a.getArticleId() == 4).findFirst().orElseThrow();
         purchaseRequestArticleDTO.setQuantity(initialQuantitiesByArticleIdMap.get(purchaseRequestArticleDTO.getArticleId()) + 100);
 
         PurchaseResponseDTO responseWithStockError = service.processPurchaseRequest(request1);
-        assertThat(responseWithStockError.getStatusCode().getMessage()).contains(NOT_ENOUGH_STOCK.getMessage(7));
+        assertThat(responseWithStockError.getStatusCode().getMessage()).contains(NOT_ENOUGH_STOCK.getMessage(4));
 
         // al haber fallado la reserva, no tiene que haber reservado nada
         initialQuantitiesByArticleIdMap.forEach((id, initialQuantity) -> {

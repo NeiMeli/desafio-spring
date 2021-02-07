@@ -29,4 +29,9 @@ public class CustomerController extends ExceptionHandlerController {
         CustomerQuery customerQuery = new CustomerQuery().withProvince(province);
         return new ResponseEntity<>(service.query(customerQuery), HttpStatus.OK);
     }
+
+    @PutMapping()
+    public ResponseEntity<CustomerResponseDTO> update(@RequestBody CustomerRequestDTO customer) {
+        return new ResponseEntity<>(service.update(customer), HttpStatus.OK);
+    }
 }

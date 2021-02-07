@@ -1,7 +1,9 @@
 package com.bootcamp.springchallenge.service.impl.customer.exception;
 
 public enum CustomerServiceErrorImpl implements CustomerServiceError {
-    CUSTOMER_ALREADY_EXISTS("Ya existe un usuario con ese nombre");
+    EMPTY_USERNAME("Nombre de usuario vacio"),
+    CUSTOMER_ALREADY_EXISTS("Ya existe un usuario con ese nombre"),
+    CUSTOMER_NOT_FOUND("Cliente no encontrado");
 
     private final String message;
 
