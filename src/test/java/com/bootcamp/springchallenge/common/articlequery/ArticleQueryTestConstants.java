@@ -2,10 +2,10 @@ package com.bootcamp.springchallenge.common.articlequery;
 
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
 
-import static com.bootcamp.springchallenge.entity.Category.TOOLS;
+import static com.bootcamp.springchallenge.entity.article.Category.TOOLS;
 
 public class ArticleQueryTestConstants {
-    public static final QueryForTest QUERY_1 = (QueryForTest) new QueryForTest()
+    public static final ArticleQueryForTest QUERY_1 = (ArticleQueryForTest) new ArticleQueryForTest()
             .withName("ad").withCategories(TOOLS.getValue()).withOrder(2);
 
     public static final ArticleResponseDTO ARTICLE_DTO_12 = new ArticleResponseDTO(12, "Taladro", TOOLS.getValue(), 12500, "****", true);

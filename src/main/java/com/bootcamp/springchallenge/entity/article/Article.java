@@ -1,6 +1,7 @@
-package com.bootcamp.springchallenge.entity;
+package com.bootcamp.springchallenge.entity.article;
 
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
+import com.bootcamp.springchallenge.entity.Persistable;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
 

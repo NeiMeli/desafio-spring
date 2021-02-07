@@ -1,8 +1,14 @@
 [
   {
-    "userName": "user1@gmail.com"
+    "userName": "user1@gmail.com",
+    "province": "Buenos Aires"
   },
   {
-    "userName": "user2@gmail.com"
+    "userName": "user2@gmail.com",
+    "province": "Chubut"
+  },
+  {
+    "userName": "user3@gmail.com",
+    "province": "Buenos Aires"
   }
 ]

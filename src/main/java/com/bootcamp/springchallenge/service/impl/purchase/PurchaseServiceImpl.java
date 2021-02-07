@@ -5,16 +5,19 @@ import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequ
 import com.bootcamp.springchallenge.controller.purchase.dto.request.PurchaseRequestDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseResponseDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOBuilder;
-import com.bootcamp.springchallenge.entity.Article;
-import com.bootcamp.springchallenge.entity.Customer;
+import com.bootcamp.springchallenge.entity.article.Article;
+import com.bootcamp.springchallenge.entity.customer.Customer;
 import com.bootcamp.springchallenge.entity.purchase.Purchase;
 import com.bootcamp.springchallenge.repository.ArticleRepository;
 import com.bootcamp.springchallenge.repository.CustomerRepository;
 import com.bootcamp.springchallenge.repository.PurchaseRepository;
 import com.bootcamp.springchallenge.service.PurchaseService;
+import com.bootcamp.springchallenge.service.impl.purchase.exception.NotEnoughStockException;
+import com.bootcamp.springchallenge.service.impl.purchase.exception.PurchaseServiceErrorImpl;
+import com.bootcamp.springchallenge.service.impl.purchase.exception.PurchaseServiceException;
 import com.bootcamp.springchallenge.service.impl.purchase.util.ArticleUtil;
-import com.bootcamp.springchallenge.service.impl.query.Query;
-import com.bootcamp.springchallenge.service.impl.query.QueryParam;
+import com.bootcamp.springchallenge.service.impl.article.query.ArticleQuery;
+import com.bootcamp.springchallenge.service.impl.article.query.ArticleQueryParam;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,7 +29,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOExtra.*;
-import static com.bootcamp.springchallenge.service.impl.purchase.PurchaseServiceErrorImpl.*;
+import static com.bootcamp.springchallenge.service.impl.purchase.exception.PurchaseServiceErrorImpl.*;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
@@ -41,7 +44,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public PurchaseResponseDTO processPurchaseRequest(PurchaseRequestDTO purchaseRequest) {
-        validate(purchaseRequest); // valido en memoria lo que pueda antes de ir a los repo
+        validatePurchaseRequest(purchaseRequest); // valido en memoria lo que pueda antes de ir a los repo
         final Purchase purchase = findOrCreatePurchase(purchaseRequest.getUserName());
         PurchaseResponseDTOBuilder responseBuilder = new PurchaseResponseDTOBuilder(purchase);
         try {
@@ -90,7 +93,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public PurchaseResponseDTO confirmPurchase(PurchaseClosureDTO purchaseData) {
-        validate(purchaseData);
+        validatePurchaseClosure(purchaseData);
         String userName = purchaseData.getUserName();
         int purchaseId = purchaseData.getReceipt();
         Purchase purchase = findPendingPurchaseOrFail(purchaseId, userName);
@@ -107,24 +110,24 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
         }
         purchase.complete();
-        customer.addPurchase();
+        customer.registerPurchase();
         purchaseRepository.persist(purchase);
         if (customer.hasBonusAvailable()) {
-            responseBuilder.withExtra(BONUS_AVAILABLE.getMessage());
+            responseBuilder.withExtra(BONUS_AVAILABLE.getMessage(customer.getBonuses()));
         }
         return responseBuilder.build();
     }
 
     @Override
     public PurchaseResponseDTO cancelPurchase(PurchaseClosureDTO purchaseData) {
-        validate(purchaseData);
+        validatePurchaseClosure(purchaseData);
         String userName = purchaseData.getUserName();
         int purchaseId = purchaseData.getReceipt();
         Purchase purchase = findPendingPurchaseOrFail(purchaseId, userName);
         releaseStock(purchase);
         purchase.cancel();
         purchaseRepository.persist(purchase);
-        return buildResponseDTO(purchase);
+        return new PurchaseResponseDTOBuilder(purchase).build();
     }
 
     private void releaseStock(Purchase purchase) {
@@ -145,11 +148,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         return purchaseOpt.get();
     }
 
-    private PurchaseResponseDTO buildResponseDTO(Purchase purchase) {
-        return new PurchaseResponseDTOBuilder(purchase).build();
-    }
-
-    private void validate(PurchaseClosureDTO purchaseConfirmation) {
+    private void validatePurchaseClosure(PurchaseClosureDTO purchaseConfirmation) {
         validateUserName(purchaseConfirmation.getUserName());
         int purchaseId = purchaseConfirmation.getReceipt();
         if (purchaseId <= 0) {
@@ -157,7 +156,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
     }
 
-    private void validate(PurchaseRequestDTO purchaseRequest) {
+    private void validatePurchaseRequest(PurchaseRequestDTO purchaseRequest) {
         validateUserName(purchaseRequest.getUserName());
         List<PurchaseRequestArticleDTO> articles = purchaseRequest.getArticles();
         if (articles == null || articles.isEmpty()) {
@@ -186,30 +185,31 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     private Purchase findOrCreatePurchase(String userName) {
-        Optional<Customer> customerOpt = customerRepository.find(userName);
         Optional<Purchase> purchaseOpt = Optional.empty();
+        Optional<Customer> customerOpt = customerRepository.find(userName);
+        // si el cliente no existe, lo creo
         if (customerOpt.isEmpty()) {
             Customer customer = new Customer(userName);
             customerRepository.persist(customer);
-        } else { // solo tiene sentido buscar compras en la base si el cliente ya existe
+        } else { // solo tiene sentido buscar compras en la base si el cliente ya existia
             purchaseOpt = purchaseRepository.findPendingPurchase(userName);
         }
         return purchaseOpt.orElseGet(() -> new Purchase(userName));
     }
 
     private String generateNotEnoughStockSuggestion(Article article, int quantity) {
-        Query query = new Query().withStockAvailable(quantity);
-        List<QueryParam> compatibleParams = QueryParam.getCompatibleParams();
+        ArticleQuery articleQuery = new ArticleQuery().withStockAvailable(quantity);
+        List<ArticleQueryParam> compatibleParams = ArticleQueryParam.getCompatibleParams();
         String articleDescription = article.describe();
         final AtomicReference<String> suggestion = new AtomicReference<>("");
         final Supplier<String> finalMessage = () -> NOT_ENOUGH_STOCK_SUGGESTION.getMessage(articleDescription, suggestion.get());
         int index = 0;
         while (suggestion.get().isEmpty() && index < compatibleParams.size()) {
-            QueryParam queryParam = compatibleParams.get(index);
-            query.with(queryParam, article);
-            suggestion.set(generateNotEnoughStockSuggestion(article, quantity, query));
+            ArticleQueryParam articleQueryParam = compatibleParams.get(index);
+            articleQuery.with(articleQueryParam, article);
+            suggestion.set(generateNotEnoughStockSuggestion(articleQuery));
             if (suggestion.get().isEmpty()) {
-                query.without(queryParam);
+                articleQuery.without(articleQueryParam);
                 index ++;
             }
         }
@@ -221,8 +221,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         return finalMessage.get();
     }
 
-    private String generateNotEnoughStockSuggestion(Article article, int quantity, Query query) {
-        List<String> suggestedArticles = articleRepository.listWhere(query.buildPredicate())
+    private String generateNotEnoughStockSuggestion(ArticleQuery articleQuery) {
+        List<String> suggestedArticles = articleRepository.listWhere(articleQuery.buildPredicate())
                 .map(Article::describe)
                 .collect(Collectors.toList());
         return String.join(", ", suggestedArticles);

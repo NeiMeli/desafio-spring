@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.controller.customer.dto;
 
-import com.bootcamp.springchallenge.entity.Customer;
+import com.bootcamp.springchallenge.entity.customer.Customer;
 
 public class CustomerResponseDTOBuilder {
     private final Customer customer;
@@ -10,6 +10,6 @@ public class CustomerResponseDTOBuilder {
     }
 
     public CustomerResponseDTO build() {
-        return new CustomerResponseDTO().setUserName(customer.getUserName());
+        return new CustomerResponseDTO().setUserName(customer.getUserName()).setProvince(customer.getProvince().getLabel());
     }
 }

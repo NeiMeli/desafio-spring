@@ -12,13 +12,14 @@ import com.bootcamp.springchallenge.controller.purchase.dto.response.PurchaseRes
 import com.bootcamp.springchallenge.controller.purchase.dto.response.ReceiptDTO;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOBuilder;
 import com.bootcamp.springchallenge.controller.purchase.dto.response.builder.PurchaseResponseDTOExtra;
-import com.bootcamp.springchallenge.entity.Article;
-import com.bootcamp.springchallenge.entity.Customer;
+import com.bootcamp.springchallenge.entity.article.Article;
+import com.bootcamp.springchallenge.entity.customer.Customer;
 import com.bootcamp.springchallenge.entity.purchase.Purchase;
 import com.bootcamp.springchallenge.entity.purchase.PurchaseArticle;
 import com.bootcamp.springchallenge.entity.purchase.PurchaseStatus;
 import com.bootcamp.springchallenge.repository.ArticleRepository;
 import com.bootcamp.springchallenge.repository.PurchaseRepository;
+import com.bootcamp.springchallenge.service.impl.purchase.exception.PurchaseServiceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,7 +36,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.bootcamp.springchallenge.service.impl.purchase.PurchaseServiceErrorImpl.*;
+import static com.bootcamp.springchallenge.service.impl.purchase.exception.PurchaseServiceErrorImpl.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -148,7 +149,7 @@ class PurchaseServiceImplTest {
         PurchaseClosureDTO purchaseClosureDTO = new PurchaseClosureDTO().setUserName(userName).setReceipt(receipt1);
         PurchaseResponseDTO responseWithBonusAdquired = service.confirmPurchase(purchaseClosureDTO);
         assertThat(responseWithBonusAdquired.getStatusCode().getCode()).isEqualTo(HttpStatus.OK.value());
-        assertThat(responseWithBonusAdquired.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_AVAILABLE.getMessage());
+        assertThat(responseWithBonusAdquired.getStatusCode().getMessage()).contains(PurchaseResponseDTOExtra.BONUS_AVAILABLE.getMessage(1));
 
         // en la compra siguiente puedo usar el bonus
         PurchaseResponseDTO responseBeforeConsumingBonus = service.processPurchaseRequest(purchaseRequestDTO);

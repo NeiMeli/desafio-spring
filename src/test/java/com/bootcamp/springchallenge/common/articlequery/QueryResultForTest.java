@@ -8,19 +8,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class QueryResultForTest {
-    private QueryForTest query;
+    private ArticleQueryForTest query;
     private List<Integer> results;
 
-    public QueryResultForTest(QueryForTest query) {
+    public QueryResultForTest(ArticleQueryForTest query) {
         this.query = query;
         results = new ArrayList<>();
     }
 
-    public QueryForTest getQuery() {
+    public ArticleQueryForTest getQuery() {
         return query;
     }
 
-    public void setQuery(QueryForTest query) {
+    public void setQuery(ArticleQueryForTest query) {
         this.query = query;
     }
 

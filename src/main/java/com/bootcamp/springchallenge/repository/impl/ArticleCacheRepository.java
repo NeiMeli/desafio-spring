@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.repository.impl;
 
-import com.bootcamp.springchallenge.entity.Article;
+import com.bootcamp.springchallenge.entity.article.Article;
 import com.bootcamp.springchallenge.repository.CacheDBTable;
 import com.bootcamp.springchallenge.repository.ArticleRepository;
 import com.fasterxml.jackson.databind.JsonNode;

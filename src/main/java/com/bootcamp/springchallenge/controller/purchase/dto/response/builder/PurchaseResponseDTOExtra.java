@@ -1,9 +1,9 @@
 package com.bootcamp.springchallenge.controller.purchase.dto.response.builder;
 
 public enum PurchaseResponseDTOExtra {
-    BONUS_AVAILABLE("Tiene 5% de descuento para usar cuando quiera."),
-    BONUS_CONSUMED("Se aplico el descuento de 5% a toda la compra"),
-    BONUS_UNAVAILABLE("No se aplico descuento ya que no hay descuento disponible");
+    BONUS_AVAILABLE("Tiene %s cupones de 5 por ciento de descuento para usar cuando quiera."),
+    BONUS_CONSUMED("Se aplico el cupon de descuento de 5 por ciento a toda la compra"),
+    BONUS_UNAVAILABLE("No se aplico descuento ya que no hay cupon disponible");
 
     private final String message;
 
@@ -13,5 +13,10 @@ public enum PurchaseResponseDTOExtra {
 
     public String getMessage() {
         return message;
+    }
+
+
+    public String getMessage(Object ... args) {
+        return String.format(message, args);
     }
 }

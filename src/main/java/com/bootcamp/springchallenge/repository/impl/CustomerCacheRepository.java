@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.repository.impl;
 
-import com.bootcamp.springchallenge.entity.Customer;
+import com.bootcamp.springchallenge.entity.customer.Customer;
 import com.bootcamp.springchallenge.repository.CacheDBTable;
 import com.bootcamp.springchallenge.repository.CustomerRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Repository
 public class CustomerCacheRepository implements CustomerRepository {
@@ -40,5 +42,10 @@ public class CustomerCacheRepository implements CustomerRepository {
     @Override
     public List<Customer> listAll() {
         return database.listAll();
+    }
+
+    @Override
+    public Stream<Customer> listWhere(Predicate<Customer> predicate) {
+        return database.listWhere(predicate);
     }
 }

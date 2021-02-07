@@ -1,9 +1,9 @@
 package com.bootcamp.springchallenge.common.articlequery;
 
-import com.bootcamp.springchallenge.service.impl.query.OrderType;
-import com.bootcamp.springchallenge.service.impl.query.Query;
+import com.bootcamp.springchallenge.service.impl.article.query.OrderType;
+import com.bootcamp.springchallenge.service.impl.article.query.ArticleQuery;
 
-public class QueryForTest extends Query {
+public class ArticleQueryForTest extends ArticleQuery {
 
     public void clear() {
         filters.clear();
@@ -13,7 +13,7 @@ public class QueryForTest extends Query {
         return orderType != OrderType.NONE;
     }
 
-    public QueryForTest withoutOrder() {
+    public ArticleQueryForTest withoutOrder() {
         orderType = OrderType.NONE;
         return this;
     }

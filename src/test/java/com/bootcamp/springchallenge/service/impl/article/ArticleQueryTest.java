@@ -1,15 +1,16 @@
-package com.bootcamp.springchallenge.service.impl.query;
+package com.bootcamp.springchallenge.service.impl.article;
 
-import com.bootcamp.springchallenge.common.articlequery.QueryForTest;
-import com.bootcamp.springchallenge.entity.Category;
-import com.bootcamp.springchallenge.entity.Prestige;
+import com.bootcamp.springchallenge.common.articlequery.ArticleQueryForTest;
+import com.bootcamp.springchallenge.entity.article.Category;
+import com.bootcamp.springchallenge.entity.article.Prestige;
+import com.bootcamp.springchallenge.service.impl.article.query.OrderType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class QueryTest {
+class ArticleQueryTest {
     @Test
     void testBadRequests() {
-        QueryForTest query = new QueryForTest();
+        ArticleQueryForTest query = new ArticleQueryForTest();
         Assertions.assertThatExceptionOfType(Prestige.PrestigeNotFoundException.class)
                 .isThrownBy(() -> query.withMinPrestige(8))
                 .withMessageContaining(String.format(Prestige.PrestigeNotFoundException.MESSAGE, 8));

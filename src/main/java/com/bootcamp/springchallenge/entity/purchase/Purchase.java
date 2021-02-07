@@ -12,16 +12,10 @@ import static com.bootcamp.springchallenge.entity.purchase.PurchaseStatus.*;
 public class Purchase implements Persistable<Integer> {
     private int id;
     private String userName;
-    private List<PurchaseArticle> articles;
+    private final List<PurchaseArticle> articles;
     private PurchaseStatus status;
     public Purchase() {
         articles = new ArrayList<>();
-    }
-
-    public Purchase(String userName, List<PurchaseArticle> articles, PurchaseStatus status) {
-        this.userName = userName;
-        this.articles = articles;
-        this.status = status;
     }
 
     public Purchase(String userName) {
@@ -61,10 +55,6 @@ public class Purchase implements Persistable<Integer> {
 
     public List<PurchaseArticle> getArticles() {
         return articles;
-    }
-
-    public void setArticles(List<PurchaseArticle> articles) {
-        this.articles = articles;
     }
 
     public PurchaseStatus getStatus() {
@@ -119,12 +109,6 @@ public class Purchase implements Persistable<Integer> {
 
     public boolean isCanceled() {
         return status == CANCELED;
-    }
-
-    public Map<Integer, Integer> getQuantitiesByArticleIdMap() {
-        final Map<Integer, Integer> quantityByArticleId = new HashMap<>();
-        articles.forEach(article -> quantityByArticleId.merge(article.getArticleId(), article.getQuantity(), Integer::sum));
-        return quantityByArticleId;
     }
 
     public void applyBonus() {

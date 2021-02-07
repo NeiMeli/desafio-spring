@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.repository;
 
-import com.bootcamp.springchallenge.entity.Article;
+import com.bootcamp.springchallenge.entity.article.Article;
 
 import java.util.Optional;
 import java.util.function.Predicate;

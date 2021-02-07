@@ -1,4 +1,4 @@
-package com.bootcamp.springchallenge.service.impl.purchase;
+package com.bootcamp.springchallenge.service.impl.purchase.exception;
 
 import com.bootcamp.springchallenge.exception.BadRequestException;
 

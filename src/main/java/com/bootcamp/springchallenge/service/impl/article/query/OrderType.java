@@ -1,6 +1,6 @@
-package com.bootcamp.springchallenge.service.impl.query;
+package com.bootcamp.springchallenge.service.impl.article.query;
 
-import com.bootcamp.springchallenge.entity.Article;
+import com.bootcamp.springchallenge.entity.article.Article;
 import com.bootcamp.springchallenge.exception.BadRequestException;
 
 import java.util.Arrays;

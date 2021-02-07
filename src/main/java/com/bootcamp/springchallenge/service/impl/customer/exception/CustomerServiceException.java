@@ -1,4 +1,4 @@
-package com.bootcamp.springchallenge.service.impl.customer;
+package com.bootcamp.springchallenge.service.impl.customer.exception;
 
 import com.bootcamp.springchallenge.exception.BadRequestException;
 

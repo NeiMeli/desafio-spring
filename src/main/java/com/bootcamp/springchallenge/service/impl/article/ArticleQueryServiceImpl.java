@@ -1,9 +1,10 @@
-package com.bootcamp.springchallenge.service.impl.query;
+package com.bootcamp.springchallenge.service.impl.article;
 
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
-import com.bootcamp.springchallenge.entity.Article;
+import com.bootcamp.springchallenge.entity.article.Article;
 import com.bootcamp.springchallenge.repository.ArticleRepository;
 import com.bootcamp.springchallenge.service.ArticleQueryService;
+import com.bootcamp.springchallenge.service.impl.article.query.ArticleQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +18,8 @@ public class ArticleQueryServiceImpl implements ArticleQueryService {
     ArticleRepository repository;
 
     @Override
-    public List<ArticleResponseDTO> query(Query query) {
-        Stream<Article> articleStream = repository.listWhere(query.buildPredicate()).sorted(query.getComparator());
+    public List<ArticleResponseDTO> query(ArticleQuery articleQuery) {
+        Stream<Article> articleStream = repository.listWhere(articleQuery.buildPredicate()).sorted(articleQuery.getComparator());
         return articleStream.map(Article::toDTO).collect(Collectors.toList());
     }
 }

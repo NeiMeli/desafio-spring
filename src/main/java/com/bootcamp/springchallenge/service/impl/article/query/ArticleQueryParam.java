@@ -1,13 +1,13 @@
-package com.bootcamp.springchallenge.service.impl.query;
+package com.bootcamp.springchallenge.service.impl.article.query;
 
-import com.bootcamp.springchallenge.entity.Article;
+import com.bootcamp.springchallenge.entity.article.Article;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public enum QueryParam {
+public enum ArticleQueryParam {
     NAME("nombre", false, (a1, a2) -> a2.getName().contains(a1.getName())),
     CATEGORY ("categoria", true, (a1, a2) -> a2.getCategory() == a1.getCategory()),
     BRAND("marca", true, (a1, a2) -> a2.getBrand().equals(a1.getBrand())),
@@ -22,8 +22,8 @@ public enum QueryParam {
         return label;
     }
 
-    public static List<QueryParam> getCompatibleParams() {
-        return Arrays.stream(values()).filter(QueryParam::isCompatible).collect(Collectors.toList());
+    public static List<ArticleQueryParam> getCompatibleParams() {
+        return Arrays.stream(values()).filter(ArticleQueryParam::isCompatible).collect(Collectors.toList());
     }
 
     private boolean isCompatible() {
@@ -37,7 +37,7 @@ public enum QueryParam {
     private final String label;
     private final boolean compatible;
 
-    QueryParam(String label, boolean compatible, Matcher matcher) {
+    ArticleQueryParam(String label, boolean compatible, Matcher matcher) {
         this.label = label;
         this.compatible = compatible;
         this.matcher = matcher;

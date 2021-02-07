@@ -1,10 +1,10 @@
-package com.bootcamp.springchallenge.service.impl.query;
+package com.bootcamp.springchallenge.service.impl.article;
 
 import com.bootcamp.springchallenge.common.articlequery.ArticleQueryTestConstants;
-import com.bootcamp.springchallenge.common.articlequery.QueryForTest;
+import com.bootcamp.springchallenge.common.articlequery.ArticleQueryForTest;
 import com.bootcamp.springchallenge.common.articlequery.QueryResultForTest;
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
-import com.bootcamp.springchallenge.entity.Category;
+import com.bootcamp.springchallenge.entity.article.Category;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
-import static com.bootcamp.springchallenge.service.impl.query.QueryParam.*;
+import static com.bootcamp.springchallenge.service.impl.article.query.ArticleQueryParam.*;
 
 @SpringBootTest
 class ArticleQueryServiceImplTest {
@@ -23,7 +23,7 @@ class ArticleQueryServiceImplTest {
     @Test
     void testQueryHappy() {
         QueryResultForTest qr = ArticleQueryTestConstants.QUERY_RESULT_1;
-        QueryForTest query = qr.getQuery();
+        ArticleQueryForTest query = qr.getQuery();
         List<ArticleResponseDTO> actualResults = service.query(query);
         Assertions.assertThat(qr.hasResult(actualResults)).isTrue();
 

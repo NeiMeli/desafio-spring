@@ -1,4 +1,4 @@
-package com.bootcamp.springchallenge.service.impl.purchase;
+package com.bootcamp.springchallenge.service.impl.purchase.exception;
 
 public enum PurchaseServiceErrorImpl implements PurchaseServiceError {
     EMPTY_ARTICLE_LIST("Lista de articulos vacia"),

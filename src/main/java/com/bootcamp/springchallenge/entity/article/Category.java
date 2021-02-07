@@ -1,4 +1,4 @@
-package com.bootcamp.springchallenge.entity;
+package com.bootcamp.springchallenge.entity.article;
 
 import com.bootcamp.springchallenge.exception.BadRequestException;
 
