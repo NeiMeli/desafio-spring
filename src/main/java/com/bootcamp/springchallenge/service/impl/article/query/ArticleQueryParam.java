@@ -16,7 +16,7 @@ public enum ArticleQueryParam {
     MIN_PRESTIGE("prestigio minimo", false, (a1, a2) -> a2.getPrestige().getValue() >= a2.getPrestige().getValue()),
     STOCK_AVAILABLE("stock disponible", false, (a1, a2) -> a2.getStock() >= a2.getStock());
 
-    private final Matcher matcher;
+    private final CompatibilityMatcher compatibilityMatcher;
 
     public String getLabel() {
         return label;
@@ -31,20 +31,20 @@ public enum ArticleQueryParam {
     }
 
     public Predicate<Article> buildPredicate (Article article) {
-        return a -> matcher.match(article, a);
+        return a -> compatibilityMatcher.match(article, a);
     }
 
     private final String label;
     private final boolean compatible;
 
-    ArticleQueryParam(String label, boolean compatible, Matcher matcher) {
+    ArticleQueryParam(String label, boolean compatible, CompatibilityMatcher compatibilityMatcher) {
         this.label = label;
         this.compatible = compatible;
-        this.matcher = matcher;
+        this.compatibilityMatcher = compatibilityMatcher;
     }
 
     @FunctionalInterface
-    public interface Matcher {
+    public interface CompatibilityMatcher {
         boolean match(Article a1, Article a2);
     }
 

@@ -3,6 +3,7 @@ package com.bootcamp.springchallenge.controller.purchase.dto.request;
 public class PurchaseClosureDTO {
     private String userName;
     private int receipt;
+    private boolean useBonus;
 
     public boolean isUseBonus() {
         return useBonus;
@@ -12,8 +13,6 @@ public class PurchaseClosureDTO {
         this.useBonus = useBonus;
         return this;
     }
-
-    private boolean useBonus;
 
     public String getUserName() {
         return userName;
