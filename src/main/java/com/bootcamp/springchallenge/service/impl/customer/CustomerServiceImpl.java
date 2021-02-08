@@ -39,7 +39,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private Province resolveProvince(@Nullable String province) {
-        return province != null ? Province.fromLabel(province) : Province.defaultProvince();
+        return !Strings.isBlank(province) ? Province.fromLabel(province) : Province.defaultProvince();
     }
 
     private void validate(CustomerRequestDTO customerDTO) {

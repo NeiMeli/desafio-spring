@@ -65,6 +65,7 @@ public class PurchaseResponseDTOBuilder {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(errorMessage != null ? errorMessage : messages.get(purchase.getStatus()));
         if (!extras.isEmpty()) {
+            stringBuilder.append(" ");
             stringBuilder.append(String.join(". ", extras));
         }
         statusCode.setCode(this.httpStatus.value())
