@@ -54,6 +54,9 @@ public class PurchaseResponseDTOBuilder {
         receipt.setId(purchase.getId())
                 .setStatus(purchase.getStatus().getValue())
                 .setArticles(purchase.getArticles().stream().map(PurchaseResponseDTOBuilder::buildPurchasePurchaseResponseArticleDTO).collect(Collectors.toList()));
+        if (!purchase.isCanceled()) {
+            receipt.setTotal(receipt.getArticles().stream().mapToDouble(PurchaseResponseArticleDTO::getCost).reduce(0, Double::sum));
+        }
         return receipt;
     }
 

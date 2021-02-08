@@ -33,6 +33,7 @@ public class ArticleQuery extends Query<ArticleQueryParam, Article> {
     }
 
     public ArticleQuery withCategories(@Nullable String... categories) {
+        if (categories == null || categories.length == 0) return this;
         List<Category> categoryList = Arrays.stream(categories).map(Category::fromValue).collect(Collectors.toList());
         return withCategories(categoryList);
     }
@@ -79,10 +80,6 @@ public class ArticleQuery extends Query<ArticleQueryParam, Article> {
     @Override
     public Comparator<Article> getComparator() {
         return orderType.getComparator();
-    }
-
-    public ArticleQuery withCategory(Category category) {
-        return withCategories(List.of(category));
     }
 
     public ArticleQuery withBrand(@Nullable String brand) {

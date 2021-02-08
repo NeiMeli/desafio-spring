@@ -48,11 +48,6 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerResponseDTO> listAll() {
-        return repository.listAll().stream().map(c -> new CustomerResponseDTOBuilder(c).build()).collect(Collectors.toList());
-    }
-
-    @Override
     public List<CustomerResponseDTO> query(@NotNull final CustomerQuery query) {
         return repository.listWhere(query.buildPredicate())
                 .sorted(query.getComparator())

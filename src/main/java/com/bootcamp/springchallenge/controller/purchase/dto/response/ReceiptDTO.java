@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.controller.purchase.dto.response;
 
-import java.util.List;
+ import java.util.List;
 
 public class ReceiptDTO {
     private int id;
@@ -40,6 +40,9 @@ public class ReceiptDTO {
 
     public void setArticles(List<PurchaseResponseArticleDTO> articles) {
         this.articles = articles;
-        total = articles.stream().mapToDouble(PurchaseResponseArticleDTO::getCost).reduce(0, Double::sum);
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
     }
 }

@@ -28,10 +28,6 @@ public abstract class CacheDBTable <K, V extends Persistable<K>> {
 
     @NotNull protected abstract K generateNextId();
 
-    public K getId(@NotNull final Persistable<K> value) {
-        return value.getPrimaryKey();
-    }
-
     public List<V> listAll() {
         return new ArrayList<>(table.values());
     }

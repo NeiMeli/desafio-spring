@@ -10,8 +10,6 @@ import java.util.List;
 public interface CustomerService {
     CustomerResponseDTO create(CustomerRequestDTO customer);
 
-    List<CustomerResponseDTO> listAll();
-
     List<CustomerResponseDTO> query(@NotNull CustomerQuery query);
 
     CustomerResponseDTO update(CustomerRequestDTO customer);

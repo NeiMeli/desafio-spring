@@ -25,8 +25,8 @@ public class CustomerController extends ExceptionHandlerController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<CustomerResponseDTO>> query(@RequestParam (required = false) String province) {
-        CustomerQuery customerQuery = new CustomerQuery().withProvince(province);
+    public ResponseEntity<List<CustomerResponseDTO>> query(@RequestParam (required = false) String[] province) {
+        CustomerQuery customerQuery = new CustomerQuery().withProvinces(province);
         return new ResponseEntity<>(service.query(customerQuery), HttpStatus.OK);
     }
 
