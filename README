@@ -18,4 +18,4 @@ Testing:
 A pesar de que se dijo claramente que no era necesario testear este desafío, van a notar que hice algunos tests. No son los tests más claros, ordenados y escalables del mundo, ya que no pude priorizar el tiempo necesario para diseñarlos de esa forma. Sin embargo, son lo suficientemente robustos y abarcativos para permitirme expandir las funcionalidades del sistema con mucha seguridad. Testear es parte de mi forma de trabajar, no lo puedo hacer de otra manera :). En el resto de los ejercicios realicé tests con más tiempo y mejor diseño, por lo general dejando el code coverage cercano al 100%. 
 
 Persistencia:
-Obté por no incluir persistencia. La aplicación se ejecuta y los datos viven en memoria, reiniciandose cada vez que se levanta la app. Preferí hacerlo así para poder incluir datos reales en los test sin correr el riesgo de que se rompan. 
+Opté por no incluir persistencia. La aplicación se ejecuta y los datos viven en memoria, reiniciandose cada vez que se levanta la app. Preferí hacerlo así para poder incluir datos reales en los test sin correr el riesgo de que se rompan.
