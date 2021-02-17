@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class CacheDBTable <K, V extends Persistable<K>> {
-    private final Map<K, V> table;
+    protected final Map<K, V> table;
 
     public CacheDBTable() {
         table = new HashMap<>();

@@ -35,9 +35,8 @@ public enum Province {
     }
 
     public static Province fromLabel(String label) {
-        String lcLabel = label.toLowerCase();
         return Arrays.stream(values())
-                .filter(p -> p.label.toLowerCase().equals(lcLabel))
+                .filter(p -> p.label.equalsIgnoreCase(label))
                 .findFirst()
                 .orElseThrow(() -> new ProvinceNotFoundException(label));
     }

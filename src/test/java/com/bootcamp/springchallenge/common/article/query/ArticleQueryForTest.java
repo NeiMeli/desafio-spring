@@ -1,4 +1,4 @@
-package com.bootcamp.springchallenge.common.articlequery;
+package com.bootcamp.springchallenge.common.article.query;
 
 import com.bootcamp.springchallenge.service.impl.article.query.OrderType;
 import com.bootcamp.springchallenge.service.impl.article.query.ArticleQuery;

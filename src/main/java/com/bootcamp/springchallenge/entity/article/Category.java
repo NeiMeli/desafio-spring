@@ -18,7 +18,7 @@ public enum Category {
 
     public static Category fromValue(String value) throws CategoryNotFoundException {
         return Arrays.stream(values())
-                .filter(v -> v.value.equals(value))
+                .filter(v -> v.value.equalsIgnoreCase(value))
                 .findFirst()
                 .orElseThrow(() -> new CategoryNotFoundException(value));
     }

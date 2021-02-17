@@ -3,6 +3,7 @@ package com.bootcamp.springchallenge.repository.impl;
 import com.bootcamp.springchallenge.entity.customer.Customer;
 import com.bootcamp.springchallenge.exception.BadRequestException;
 import com.bootcamp.springchallenge.repository.CacheDBTable;
+import com.bootcamp.springchallenge.repository.CacheRepository;
 import com.bootcamp.springchallenge.repository.CustomerRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Repository
-public class CustomerCacheRepository implements CustomerRepository {
+public class CustomerCacheRepository implements CustomerRepository, CacheRepository<String, Customer> {
     final CacheDBTable<String, Customer> database;
 
     public CustomerCacheRepository() throws Exception {
@@ -32,21 +33,26 @@ public class CustomerCacheRepository implements CustomerRepository {
 
     @Override
     public Optional<Customer> find(String userName) {
-        return database.find(userName);
+        return getDatabase().find(userName);
     }
 
     @Override
     public Customer persist(Customer customer) {
-        return database.persist(customer);
+        return getDatabase().persist(customer);
     }
 
     @Override
     public List<Customer> listAll() {
-        return database.listAll();
+        return getDatabase().listAll();
     }
 
     @Override
     public Stream<Customer> listWhere(Predicate<Customer> predicate) {
-        return database.listWhere(predicate);
+        return getDatabase().listWhere(predicate);
+    }
+
+    @Override
+    public CacheDBTable<String, Customer> getDatabase() {
+        return database;
     }
 }

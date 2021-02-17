@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class Article implements Persistable<Integer> {
     private int id;
-
     private String name;
     private Category category;
     private String brand;

@@ -1,6 +1,6 @@
 package com.bootcamp.springchallenge.service.impl.article;
 
-import com.bootcamp.springchallenge.common.articlequery.ArticleQueryForTest;
+import com.bootcamp.springchallenge.common.article.query.ArticleQueryForTest;
 import com.bootcamp.springchallenge.entity.article.Category;
 import com.bootcamp.springchallenge.entity.article.Prestige;
 import com.bootcamp.springchallenge.service.impl.article.query.OrderType;

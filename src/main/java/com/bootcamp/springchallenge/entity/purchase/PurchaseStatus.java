@@ -16,9 +16,8 @@ public enum PurchaseStatus {
     }
 
     public static PurchaseStatus fromValue(String value) throws PurchaseStatusNotFoundException {
-        String lcValue = value.toLowerCase();
         return Arrays.stream(values())
-                .filter(v -> v.value.toLowerCase().equals(lcValue))
+                .filter(v -> v.value.equalsIgnoreCase(value))
                 .findFirst()
                 .orElseThrow(() -> new PurchaseStatusNotFoundException(value));
     }

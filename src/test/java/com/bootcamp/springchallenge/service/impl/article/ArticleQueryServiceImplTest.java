@@ -1,8 +1,8 @@
 package com.bootcamp.springchallenge.service.impl.article;
 
-import com.bootcamp.springchallenge.common.articlequery.ArticleQueryTestConstants;
-import com.bootcamp.springchallenge.common.articlequery.ArticleQueryForTest;
-import com.bootcamp.springchallenge.common.articlequery.QueryResultForTest;
+import com.bootcamp.springchallenge.common.article.query.ArticleQueryTestConstants;
+import com.bootcamp.springchallenge.common.article.query.ArticleQueryForTest;
+import com.bootcamp.springchallenge.common.article.query.QueryResultForTest;
 import com.bootcamp.springchallenge.controller.articlequery.dto.ArticleResponseDTO;
 import com.bootcamp.springchallenge.entity.article.Category;
 import org.assertj.core.api.Assertions;
