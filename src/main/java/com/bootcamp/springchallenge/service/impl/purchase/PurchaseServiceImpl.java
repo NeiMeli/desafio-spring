@@ -42,6 +42,16 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Autowired
     CustomerRepository customerRepository;
 
+    /**
+     * Processes all purchase requests. First an in-memory validation occurs.
+     * Then the articles are processed by adding them to an existing request or a new one.
+     * This is were stock validation takes place, generating and returning alternative suggestions
+     * if a requested article is out of stock.
+     * In that case no article is processed and response status is 206.
+     *
+     * @param purchaseRequest a purchaseRequestDTO
+     * @return a PurchaseResponseDTO if everything worked fine.
+     */
     @Override
     public PurchaseResponseDTO processPurchaseRequest(PurchaseRequestDTO purchaseRequest) {
         validatePurchaseRequest(purchaseRequest); // valido en memoria lo que pueda antes de ir a los repo
@@ -57,6 +67,18 @@ public class PurchaseServiceImpl implements PurchaseService {
         return responseBuilder.build();
     }
 
+    /**
+     * Validates each article's integrity and stock availability.
+     * In case any article is not found in the repository, a RuntimeException exception is thrown.
+     * In case any article is out of stock, a suggestion for a similar article is built and added to a list.
+     * After processing all articles, if suggestions exist, they are returned by embedding them into an exception before throwing it
+     * Otherwise stock reservation is executed asynchronously.
+     * Finally, the purcharse is updated by adding each article and its quantity.
+     *
+     * @param articles a list of PurchaseRequestArticleDTO
+     * @param purchase a real instance of Purchase
+     * @throws NotEnoughStockException if an article is out of stock
+     */
     private void processArticles(List<PurchaseRequestArticleDTO> articles, Purchase purchase) throws NotEnoughStockException {
         final Map<Integer, Integer> quantitiesByArticleId = ArticleUtil.getQuantitiesByArticleDtoId(articles);
         final Map<Integer, Article> availableArticles = new HashMap<>();
