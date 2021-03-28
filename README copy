@@ -1,0 +1,21 @@
+Gracias por interesarse en la revisión de mi resolución del desafío. Creo que quedó muy bien y prolijo, pero aún así consideré que algunas notas serían de utilidad. 
+
+Reglas de negocio / interpretación de la consigna:
+- La entidad Customer guarda nombre de usuario y provincia. La provincia es opcional y por defecto UNDEFINED. 
+- La entidad Customer tiene como primary key el userName, no tiene id. 
+- Al postear una orden de compra con el nombre de un Customer inexistente, se crea uno con ese nombre y provincia undefined, para así no perder la venta.
+- Se puede actualizar la provincia de los Customer mediante un put. 
+- El cliente puede añadir articulos a su carrito en forma progresiva. En caso de agregar un articulo cuyo identificador y descuento coincidan con alguno de los ya presentes, se acumulará la cantidad. En caso contrario se añadirá un nuevo elemento al listado. 
+- La reserva de stock sucede durante la orden de compra. Al cancelar la compra, el stock es liberado. 
+
+Funcionalidades extra: 
+- El ciclo de vida de la compra tiene tres estados. Siempre se inicia como Pendiente, y es en ese punto donde el cliente puede ir sumando artículos al carrito. Luego pueden confirmar o cancelar la compra, la cual pasará a Confirmada o Cancelada según el caso. Los clientes solo pueden iniciar compras si no tienen una compra Pendiente vigente.  
+- Para confirmar/cancelar una compra es necesario indicar el nombre de usuario y el numero de recibo obtenido al realizar la orden.
+- Cada 3 compras los clientes ganan un bono fijo de 5% de descuento sobre el precio final en su siguiente compra, siempre y cuando lo indiquen al momento de confirmarla (useBonus=true en PurchaseClosureDTO). El bono es fijo y acumulable.
+- Al solicitar un producto sin stock el sistema sugiere productos similares tomando como criterio primero la categoría y luego la marca del producto original. Esta funcionalidad es escalable, ya que basta con configurar el enum ArticleQueryParam como compatible = true para que sea considerado en estas sugerencias. La idea es motivar al cliente a que cambie el producto original por otro similar. 
+
+Testing:
+A pesar de que se dijo claramente que no era necesario testear este desafío, van a notar que hice algunos tests. No son los tests más claros, ordenados y escalables del mundo, ya que no pude priorizar el tiempo necesario para diseñarlos de esa forma. Sin embargo, son lo suficientemente robustos y abarcativos para permitirme expandir las funcionalidades del sistema con mucha seguridad. Testear es parte de mi forma de trabajar, no lo puedo hacer de otra manera :). En el resto de los ejercicios realicé tests con más tiempo y mejor diseño, por lo general dejando el code coverage cercano al 100%. 
+
+Persistencia:
+Opté por no incluir persistencia. La aplicación se ejecuta y los datos viven en memoria, reiniciandose cada vez que se levanta la app. Preferí hacerlo así para poder incluir datos reales en los test sin correr el riesgo de que se rompan.
