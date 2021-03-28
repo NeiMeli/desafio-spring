@@ -103,6 +103,7 @@ class PurchaseRequestControllerTest {
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
+
         PurchaseResponseDTO actualResponse = objectMapper.readValue(mvcResult1.getResponse().getContentAsString(), PurchaseResponseDTO.class);
         final double expectedTotalPrice = DoubleProcessor.roundTwoDecimals((a1.getPrice() + a2.getPrice()) * 0.9d); // ambos tienen qty 1 y 10% de desc
         ReceiptDTO receipt = actualResponse.getReceipt();
