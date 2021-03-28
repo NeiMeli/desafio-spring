@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: devmasx/coverage-check-action@v1.2.0
       with:
-        type: lcov
+        type: simplecov
         result_path: coverage/example.lcov
         min_coverage: 80
         token: token-token
