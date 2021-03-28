@@ -101,7 +101,7 @@ class PurchaseRequestControllerTest {
         MvcResult mvcResult1 = mvc.perform(post(PATH)
                 .contentType(MediaType.APPLICATION_JSON).content(JSON_GENERATOR.apply(validRequest)))
                 .andDo(print())
-                .andExpect(status().is(HttpStatus.BAD_GATEWAY.value()))
+                .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
         PurchaseResponseDTO actualResponse = objectMapper.readValue(mvcResult1.getResponse().getContentAsString(), PurchaseResponseDTO.class);
         final double expectedTotalPrice = DoubleProcessor.roundTwoDecimals((a1.getPrice() + a2.getPrice()) * 0.9d); // ambos tienen qty 1 y 10% de desc
